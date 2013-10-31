@@ -1,5 +1,7 @@
 /BATCH,LIST
 /CONFIG, NRES, 5000
+/NUMBER,1
+/PNUM,TYPE,1
 !!!! Team BLAST Parameters
 !
 ! Results!! execute command: "mkdir /data2/blast_project/ansys/results/<your name here>
@@ -20,7 +22,7 @@ NUM_STEP=.003/TIMESTEP
 NODE_RADIUS=0.9
 NODE_ANGLE=0
 ! Magnitude (in Pa)
-PRES_MAG=1
+PRES_MAG=300000
 !
 !
 ! Viscoelastic Brain = 1 or Acoustic = 0
@@ -39,15 +41,16 @@ AIR_OUTER=1
 !
 !! Meshing 
 ! Define Line Divisions
-RADIAL_DIVISIONS= 40
+MESH_SCALE=25
+RADIAL_DIVISIONS= 4*MESH_SCALE
 SEMI=RADIAL_DIVISIONS/2
 QUARTER=RADIAL_DIVISIONS/4
 ! Divisions are in divisions/meter
-BRAIN_DIVISIONS=100
-SKULL_DIVISIONS=150
-AIR_GAP_DIVISIONS=50
-AIR_DIVISIONS=25
-HELMET_DIVISIONS=50
+BRAIN_DIVISIONS=4*MESH_SCALE
+SKULL_DIVISIONS=3*MESH_SCALE
+AIR_GAP_DIVISIONS=2*MESH_SCALE
+AIR_DIVISIONS=MESH_SCALE
+HELMET_DIVISIONS=2*MESH_SCALE
 ! Preprocessing Stage
 /PREP7 
 NLGEOM, ON
@@ -280,24 +283,22 @@ MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,12
 !
 ! Done Meshing - Merge All Quantities
-	NUMMRG,ALL                     ! merge all quantities
+NUMMRG,ALL                     ! merge all quantities
 !
 !
 ! Define Boundary Conditions
 !
 ! Modify all elements not touching a solid to 
 esel,s,type,,SKULL
-nsle,s
-esln,s,0
+nsle,s,ALL
+esln,s,0,ALL
 nsle,s
 esel,inve
+esel, r, type,,SFI
 nsle,s
 emodif,all,type,AIR
-nsel,s,loc,x,0,.083
-esln,s
-emodif,all,type,BRAIN
-esel,all
-nsel,all
+nsel,ALL
+esel,ALL
 ! Couple interfaces
 !nsel,s,loc,x,.073,.086
 !CPINTF, ALL, .01
@@ -366,6 +367,8 @@ FINISH
 /SOLU
 ANTYPE,4
 NLGEOM,on
+NEQIT,60
+NCNV,0
 TRNOPT,FULL 
 LUMPM,0  
 OUTRES,NSOL,1,
