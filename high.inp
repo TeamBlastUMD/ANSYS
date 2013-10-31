@@ -1,0 +1,487 @@
+/BATCH,LIST
+/CONFIG, NRES, 5000
+!!!! Team BLAST Parameters
+!
+! Results!! execute command: "mkdir /data2/blast_project/ansys/results/<your name here>
+! /data2/blast_project/ansys/results/<your name here>
+! RESULTSFOLDER=<your name here>
+RESULTSFOLDER='1pa5us/'
+!
+! Output Resolution
+! 5us = 600
+! 1us = 3000
+TIMESTEP=.000005
+NUM_STEP=.003/TIMESTEP
+!
+!
+!
+!! Blast Properties
+! Location (polar coordinates)
+NODE_RADIUS=0.9
+NODE_ANGLE=0
+! Magnitude (in Pa)
+PRES_MAG=1
+!
+!
+! Viscoelastic Brain = 1 or Acoustic = 0
+VISCO=1
+!
+!! Geometry (in m)_
+BRAIN_RADIUS=.085
+SKULL_INNER_RADIUS=BRAIN_RADIUS
+SKULL_OUTER_RADIUS=.095
+AIR_GAP_INNER=SKULL_OUTER_RADIUS
+AIR_GAP_OUTER=.133
+HELMET_INNER=AIR_GAP_OUTER
+HELMET_OUTER=.152
+AIR_INNER=HELMET_OUTER
+AIR_OUTER=1
+!
+!! Meshing 
+! Define Line Divisions
+RADIAL_DIVISIONS= 40
+SEMI=RADIAL_DIVISIONS/2
+QUARTER=RADIAL_DIVISIONS/4
+! Divisions are in divisions/meter
+BRAIN_DIVISIONS=100
+SKULL_DIVISIONS=150
+AIR_GAP_DIVISIONS=50
+AIR_DIVISIONS=25
+HELMET_DIVISIONS=50
+! Preprocessing Stage
+/PREP7 
+NLGEOM, ON
+/TITLE,Acoustic Analysis
+/UIS, MSGPOP, 3 ! supress warning messages *******************************
+csys,1 ! Define Cylindrical Coordinate System
+BRAIN=1
+SKULL=2
+HELMET=3
+AIR=6
+INFINITE=5
+SFI=4
+!
+! Define Real Constants
+R_AIR=1.0
+R,INFINITE,R_AIR,0,0			! Real constants set
+!
+! Define Element Types 
+ET,SKULL,PLANE42                 ! structural element
+*IF,VISCO,EQ,1,THEN
+ET,BRAIN,PLANE182                 ! acoustic fluid element with ux & uy
+*ELSEIF,VISCO,EQ,0
+ET,BRAIN,FLUID29
+*ENDIF
+ET,HELMET,PLANE42                 ! acoustic fluid element with ux & uy
+ET,SFI,fluid29,,0,0
+ET,INFINITE,FLUID129             ! acoustic infinite line element
+ET,AIR,fluid29,,1,0
+!
+! Define Material Properties
+!
+*IF,VISCO,EQ,1,THEN
+!MP 1 is Brain
+!hyper & visco props per Rashid et al, "Hyper....of brain tissue"
+u1=2780
+a1=6
+TB,HYPER,,,,OGDEN
+TBDATA,BRAIN,u1,a1
+TB,PRONY,BRAIN,,2,SHEAR
+g1=0.5837
+g2=0.2387
+t1=0.02571
+t2=.0257
+TBDATA,BRAIN,g1,t1,g2,t2
+*ELSEIF,VISCO,EQ,0
+MP,DENS,BRAIN,1.225
+MP,SONC,BRAIN,340
+*ENDIF
+!
+!MP 2 is SKULL
+MP,EX,SKULL,2.5e9 ! Elastic Modulus
+MP,DENS,SKULL,1175 ! Density
+MP,NUXY,SKULL,0.22 ! Minor Poisson's Ratio
+!
+! MP 3 is Helmet
+MP, DENS, HELMET, 1050
+MP, EX, HELMET, 2.45e9 
+MP,NUXY,HELMET,0.22 ! Minor Poisson's Ratio
+!
+! MP 4 is Air
+MP,DENS,AIR,1.225 ! Density
+MP,SONC,AIR,343.2 ! Sonic Velocity
+MP,VISC,AIR,16E-6 ! Viscosity
+!
+! MP of INFINITE is the same as AIR
+!
+! Create Geometry
+! 
+! Create Brain Geometry
+CYL4,0,0,0,0,BRAIN_RADIUS,90
+CYL4,0,0,0,90,BRAIN_RADIUS,180
+CYL4,0,0,0,180,BRAIN_RADIUS,270
+CYL4,0,0,0,270,BRAIN_RADIUS,360
+!
+! Create Skull Geometry
+CYL4,0,0,SKULL_INNER_RADIUS,0,SKULL_OUTER_RADIUS,180    
+CYL4,0,0,SKULL_INNER_RADIUS,180,SKULL_OUTER_RADIUS,360
+!
+! Create Air Gap Geometry
+CYL4,0,0,AIR_GAP_INNER,0,AIR_GAP_OUTER,90
+CYL4,0,0,AIR_GAP_INNER,270,AIR_GAP_OUTER,360
+!
+! Create Helmet Geometry
+CYL4,0,0,HELMET_INNER,0,HELMET_OUTER,180
+!
+! Create Air Geometry
+CYL4,0,0,HELMET_INNER,180,HELMET_OUTER,360
+CYL4,0,0,AIR_INNER,0,AIR_OUTER,180
+CYL4,0,0,AIR_INNER,180,AIR_OUTER,360
+!
+! Mesh Geometry
+!
+! Mesh Brain
+! Areas 1-4 are Brain
+ASEL,S,AREA,,1  ! BRAIN AREA
+AATT,BRAIN,1,BRAIN,0
+A1_4_D=BRAIN_RADIUS*BRAIN_DIVISIONS
+LESIZE,1,,,QUARTER,1   ! OUTER CURVE
+LESIZE,2,,,A1_4_D,1   ! LEFT LINE
+LESIZE,3,,,A1_4_D,1  ! RIGHT LINE
+MSHKEY,0
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,1
+ASEL,S,AREA,,2  ! BRAIN AREA
+AATT,BRAIN,1,BRAIN,0
+LESIZE,4,,,QUARTER,1   ! OUTER CURVE
+LESIZE,5,,,A1_4_D,1   ! LEFT LINE
+LESIZE,6,,,A1_4_D,1  ! RIGHT LINE
+MSHKEY,0
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,2
+ASEL,S,AREA,,3  ! BRAIN AREA
+AATT,BRAIN,1,BRAIN,0
+LESIZE,7,,,QUARTER,1   ! OUTER CURVE
+LESIZE,8,,,A1_4_D,1   ! LEFT LINE
+LESIZE,9,,,A1_4_D,1  ! RIGHT LINE
+MSHKEY,0
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,3
+ASEL,S,AREA,,4  ! BRAIN AREA
+AATT,BRAIN,1,BRAIN,0
+LESIZE,10,,,QUARTER,1   ! OUTER CURVE
+LESIZE,11,,,A1_4_D,1   ! LEFT LINE
+LESIZE,12,,,A1_4_D,1  ! RIGHT LINE
+MSHKEY,0
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,4
+!
+! Mesh Skull
+! Areas 5-6 are Skull
+SKULL_WIDTH=SKULL_OUTER_RADIUS-SKULL_INNER_RADIUS
+A5_6_D=SKULL_WIDTH*SKULL_DIVISIONS
+ASEL,S,AREA,,5  ! SKULL AREA
+AATT,SKULL,1,SKULL,0
+LESIZE,13,,,SEMI,1  ! INNER CURVE
+LESIZE,14,,,A5_6_D,1  ! OUTER CURVE
+LESIZE,15,,,SEMI,1  ! LEFT LINE
+LESIZE,16,,,A5_6_D,1  ! RIGHT LINE
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,5	
+ASEL,S,AREA,,6  ! SKULL AREA
+AATT,SKULL,1,SKULL,0
+LESIZE,17,,,SEMI,1  ! INNER CURVE
+LESIZE,18,,,A5_6_D,1  ! OUTER CURVE
+LESIZE,19,,,SEMI,1  ! LEFT LINE
+LESIZE,20,,,A5_6_D,1  ! RIGHT LINE
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,6
+!
+! Mesh Air Gap
+! Areas 7-8 are Air Gap
+AIR_GAP_WIDTH=AIR_GAP_OUTER-AIR_GAP_INNER
+A7_8_D=AIR_GAP_WIDTH*AIR_GAP_DIVISIONS
+ASEL,S,AREA,,7  ! AIR GAP AREA
+AATT,AIR,1,SFI,0
+LESIZE,21,,,QUARTER,1  ! inner curve
+LESIZE,23,,,QUARTER,1  ! outer curve
+LESIZE,22,,,A7_8_D,1  ! left radial
+LESIZE,24,,,A7_8_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,7
+ASEL,S,AREA,,8  ! AIR GAP AREA
+AATT,AIR,1,SFI,0
+LESIZE,25,,,QUARTER,1  ! inner curve
+LESIZE,27,,,QUARTER,1  ! outer curve
+LESIZE,26,,,A7_8_D,1  ! left radial
+LESIZE,28,,,A7_8_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,8
+ESEL, s, type,,SFI
+NSLE,s,ALL
+CSYS,0
+NSYM,X,10000,ALL
+ESYM,X,10000,ALL
+CSYS,1
+ESEL,ALL
+NSEL,ALL
+!	
+! Mesh Helmet
+! Area 9 is helmet
+HELMET_WIDTH=HELMET_OUTER-HELMET_INNER
+A9_D=HELMET_WIDTH*HELMET_DIVISIONS
+ASEL,S,AREA,,9  ! HELMET AREA
+AATT,HELMET,1,HELMET,0
+LESIZE,29,,,SEMI,1  ! inner curve
+LESIZE,31,,,SEMI,1  ! outer curve
+LESIZE,30,,,A9_D,1  ! left radial
+LESIZE,32,,,A9_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,9
+! 
+! Mesh Remaining Air
+! Areas 10-12 are air
+A10_D=HELMET_WIDTH*AIR_GAP_DIVISIONS
+ASEL,S,AREA,,10  ! AIR AREA
+AATT,AIR,1,SFI,0
+LESIZE,33,,,SEMI,1  ! inner curve
+LESIZE,35,,,SEMI,1  ! outer curve
+LESIZE,34,,,A10_D,1  ! left radial
+LESIZE,36,,,A10_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,10
+! select, assign attribute to and mesh area 2
+AIR_WIDTH=AIR_OUTER-AIR_INNER
+A11_12_D=AIR_WIDTH*AIR_DIVISIONS
+ASEL,S,AREA,,11  ! AIR AREA
+AATT,AIR,1,SFI,0
+LESIZE,37,,,SEMI,1  ! inner curve
+LESIZE,39,,,SEMI,1  ! outer curve
+LESIZE,38,,,A11_12_D,1  ! left radial
+LESIZE,40,,,A11_12_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,11
+! select, assign attribute to and mesh area 2
+ASEL,S,AREA,,12  ! AIR AREA
+AATT,AIR,1,SFI,0
+LESIZE,41,,,SEMI,1  ! inner curve
+LESIZE,43,,,SEMI,1  ! outer curve
+LESIZE,42,,,A11_12_D,1  ! left radial
+LESIZE,44,,,A11_12_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,12
+!
+! Done Meshing - Merge All Quantities
+	NUMMRG,ALL                     ! merge all quantities
+!
+!
+! Define Boundary Conditions
+!
+! Modify all elements not touching a solid to 
+esel,s,type,,SKULL
+nsle,s
+esln,s,0
+nsle,s
+esel,inve
+nsle,s
+emodif,all,type,AIR
+nsel,s,loc,x,0,.083
+esln,s
+emodif,all,type,BRAIN
+esel,all
+nsel,all
+! Couple interfaces
+!nsel,s,loc,x,.073,.086
+!CPINTF, ALL, .01
+! 
+! Infinite Boundary at Outer Radius
+nsel,s,loc,x,AIR_OUTER	! Select Outermost Nodes
+type,INFINITE
+mat,AIR
+real,INFINITE
+esurf
+nsel,all
+esel,all
+!
+!
+! Fluid-Solid Interface for Skull to Brain if Acoustic
+*IF,VISCO,EQ,0,THEN
+nsel,s,loc,x,SKULL_INNER_RADIUS
+esel,s,type,,SFI
+SF,all,fsi,1
+*ENDIF
+! Fluid-Solid Interface for Skull to Air
+nsel,s,loc,x,SKULL_OUTER_RADIUS
+esel,s,type,,SFI
+SF,all,fsi,1
+!
+! Fluid-Solid Interface for Helmet
+! Inner curve of helmet
+nsel,s,loc,x,HELMET_INNER
+nsel,r, loc,y,0,180
+esel,s,type,,SFI
+sf,all,fsi,1
+! Outer curve of helmet
+nsel,s,loc,x,HELMET_OUTER
+nsel,r, loc,y,0,180
+esel,s,type,,SFI
+sf,all,fsi,1
+! Right edge of helmet
+nsel,s,loc,x,HELMET_INNER,HELMET_OUTER
+nsel,r, loc,y,0
+esel,s,type,,SFI
+sf,all,fsi,1
+! Left edge of helmet
+nsel,s,loc,x,HELMET_INNER,HELMET_OUTER
+nsel,r, loc,y,0,180
+esel,s,type,,SFI
+sf,all,fsi,1
+!
+! Reselect all nodes and elements
+nsel,all
+esel,all
+esel, s,type, ,BRAIN
+nsle,s,ALL
+esel, s,type, ,SKULL
+nsle,r,ALL
+!!! MIKE STOP HERE IF YOU WANT THE NODES THAT ARE BETWEEN THE BRAIN AND SKULL
+nsel,ALL
+esel,ALL
+!
+! Modify WorkPlane
+wpstyle,0.05,0.1,-1,1,0.003,1,0,,5  
+WPSTYLE,,,,,,,,1
+FINISH
+!
+! Solution Stage
+*SET,PRES_NODE,NODE(NODE_RADIUS,NODE_ANGLE,0)
+/SOLU
+ANTYPE,4
+NLGEOM,on
+TRNOPT,FULL 
+LUMPM,0  
+OUTRES,NSOL,1,
+OUTRES,A,1
+OUTRES,EPEL,1
+D,PRES_NODE,PRES, PRES_MAG
+TIME,0.0002
+AUTOTS,-1
+DELTIM,TIMESTEP,0,0,0
+KBC,0  
+TSRES,ERASE  
+LSWRITE,1,
+OUTRES,NSOL,1,
+OUTRES,A,1
+OUTRES,EPEL,1
+D,PRES_NODE,PRES, 0 
+TIME,0.0004 
+AUTOTS,-1   
+KBC,0    
+TSRES,ERASE
+LSWRITE,2,  
+OUTRES,NSOL,1,
+OUTRES,A,1
+OUTRES,EPEL,1
+DDELE, PRES_NODE,PRES
+TIME,0.003  ! *********************
+AUTOTS,-1 
+KBC,0    
+TSRES,ERASE
+LSWRITE,3 
+SAVE
+LSSOLVE,1,3,1, 
+FINISH
+/POST1
+!!!!!!!!!!!!!!!!!! OUTPUT BRAIN NODE LOCATIONS
+PATH='/data2/blast_project/'
+PATH2='ansys/results/'
+NODE_LOCATIONS_FILE='BRAIN_NODE_LOCATIONS'
+! to select nodes use the nsel command
+! in the form: nsel, <OPTION>, loc, <DIRECTION>, <START>, <STOP>
+! or the form: nsel, <OPTION>, loc, <DIRECTION>, <SINGLE_LOCATION>
+! <OPTION> = s to select from all nodes
+! <OPTION> = r to reselect from current selection
+! <DIRECTION> = x for radius
+! <DIRECTION> = y for theta
+! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
+nsel,s,loc,x,0,0.085 ! Selects all nodes from radius 0 to 0.085
+/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
+NLIST,ALL, , ,XYZ,,,,
+/OUTPUT
+!
+!!!!!!!!!!!!!!! OUTPUT PRESSURES
+/POST1
+nsel,s,loc,x,,0.085 ! Selects all nodes from radius 0 to 0.085
+esln,s,1 ! Selects all elements from radius 0 to 0.085
+*do, STEP_NO, 1, NUM_STEP
+	SET,,, ,,, ,%step_no%
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_P_%STEP_NO%,,,,
+	PRNSOL,PRES
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_S_%STEP_NO%,,,,
+	PRNSOL, EPEL, PRIN
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_A_%STEP_NO%,,,,
+	PRNSOL, ACC, COMP
+*enddo
+/OUTPUT
+!
+!!!!!!!!!!!!!!!!!! OUTPUT INNER NODE LOCATIONS
+NODE_LOCATIONS_FILE='INNER_NODE_LOCATIONS'
+! to select nodes use the nsel command
+! in the form: nsel, <OPTION>, loc, <DIRECTION>, <START>, <STOP>
+! or the form: nsel, <OPTION>, loc, <DIRECTION>, <SINGLE_LOCATION>
+! <OPTION> = s to select from all nodes
+! <OPTION> = r to reselect from current selection
+! <DIRECTION> = x for radius
+! <DIRECTION> = y for theta
+! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
+nsel,s,loc,x,0.0951,0.1329 ! Selects all nodes from radius .951 to .133
+/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
+NLIST,ALL, , ,XYZ,,,,
+/OUTPUT
+!
+!!!!!!!!!!!!!!! OUTPUT PRESSURES
+/POST1
+nsel,s,loc,x,0.0951,0.1329 ! Selects all nodes from radius .951 to .133
+esln,s,1 ! Selects all elements from radius .951 to .133
+*do, STEP_NO, 1, NUM_STEP
+	SET,,, ,,, ,%step_no%
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%I_P_%STEP_NO%,,,,
+	PRNSOL,PRES
+*enddo
+/OUTPUT
+!!!!!!!!!!!!!!!!!! OUTPUT OUTER NODE LOCATIONS
+NODE_LOCATIONS_FILE='OUTER_NODE_LOCATIONS'
+! to select nodes use the nsel command
+! in the form: nsel, <OPTION>, loc, <DIRECTION>, <START>, <STOP>
+! or the form: nsel, <OPTION>, loc, <DIRECTION>, <SINGLE_LOCATION>
+! <OPTION> = s to select from all nodes
+! <OPTION> = r to reselect from current selection
+! <DIRECTION> = x for radius
+! <DIRECTION> = y for theta
+! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
+nsel,s,loc,x,0.153,0.173 ! Selects all nodes from radius .153 to .173
+/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
+NLIST,ALL, , ,XYZ,,,,
+/OUTPUT
+!
+!!!!!!!!!!!!!!! OUTPUT PRESSURES
+/POST1
+nsel,s,loc,x,0.153,0.173 ! Selects all nodes from radius .153 to .173
+esln,s,1 ! Selects all elements from radius .153 to .173
+*do, STEP_NO, 1, NUM_STEP
+	SET,,, ,,, ,%step_no%
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%O_P_%STEP_NO%,,,,
+	PRNSOL,PRES
+*enddo
+/OUTPUT
