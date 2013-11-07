@@ -90,16 +90,23 @@
 	*IF,VISCO,EQ,1,THEN
 	!MP 1 is Brain
 	!hyper & visco props per Rashid et al, "Hyper....of brain tissue"
+	!Constitutive modelling of brain tissue--bulk modulus of 2.5E9	
 	u1=2780
 	a1=6
-	TB,HYPER,,,,OGDEN
-	TBDATA,BRAIN,u1,a1
+	d1=0.8E-9 			!incompressibility = 2/bulk modulus
+	TB,HYPER,BRAIN,,,OGDEN
+	TBDATA,1,u1
+	TBDATA,2,a1
+	TBDATA,3,d1
 	TB,PRONY,BRAIN,,2,SHEAR
 	a1=0.5837
 	a2=0.2387
 	t1=0.02571
 	t2=.0257
-	TBDATA,BRAIN,a1,t1,a2,t2
+	TBDATA,1,a1
+	TBDATA,2,t1
+	TBDATA,3,a2
+	TBDATA,4,t2
 	MP,DENS,BRAIN, 1060
 	*ELSEIF,VISCO,EQ,0
 	MP,DENS,BRAIN,1000
