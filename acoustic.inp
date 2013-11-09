@@ -19,20 +19,15 @@ NUM_STEP=.003/TIMESTEP
 !
 !! Blast Properties
 ! Location (polar coordinates)
-NODE_RADIUS=0.5
+NODE_RADIUS=0.9
 NODE_ANGLE=0
 ! Magnitude (in Pa)
-PRES_MAG=137895
+PRES_MAG=300000
 !
-!
-! Viscoelastic Brain = 1 or Acoustic = 0
-VISCO=1
 !
 !! Geometry (in m)_
-BRAIN_RADIUS=.08
-CSF_INNER_RADIUS=BRAIN_RADIUS
-CSF_OUTER_RADIUS=.085
-SKULL_INNER_RADIUS=CSF_OUTER_RADIUS
+BRAIN_RADIUS=.085
+SKULL_INNER_RADIUS=BRAIN_RADIUS
 SKULL_OUTER_RADIUS=.095
 AIR_GAP_INNER=SKULL_OUTER_RADIUS
 AIR_GAP_OUTER=.133
@@ -43,13 +38,12 @@ AIR_OUTER=1
 !
 !! Meshing 
 ! Define Line Divisions
-MESH_SCALE=25
-RADIAL_DIVISIONS= 4*MESH_SCALE
+MESH_SCALE=100
+RADIAL_DIVISIONS= MESH_SCALE
 SEMI=RADIAL_DIVISIONS/2
 QUARTER=RADIAL_DIVISIONS/4
 ! Divisions are in divisions/meter
-BRAIN_DIVISIONS=4*MESH_SCALE
-cCSF_DIVISIONS=MESH_SCALE
+BRAIN_DIVISIONS=2*MESH_SCALE
 SKULL_DIVISIONS=3*MESH_SCALE
 AIR_GAP_DIVISIONS=2*MESH_SCALE
 AIR_DIVISIONS=MESH_SCALE
@@ -66,7 +60,6 @@ HELMET=3
 AIR=6
 INFINITE=5
 SFI=4
-CSF=7
 !
 ! Define Real Constants
 R_AIR=1.0
@@ -74,38 +67,17 @@ R,INFINITE,R_AIR,0,0			! Real constants set
 !
 ! Define Element Types 
 ET,SKULL,PLANE42                 ! structural element
-*IF,VISCO,EQ,1,THEN
-ET,BRAIN,PLANE182                 ! acoustic fluid element with ux & uy
-*ELSEIF,VISCO,EQ,0
-ET,BRAIN,FLUID29
-*ENDIF
+ET,BRAIN,FLUID29,,1,0
 ET,HELMET,PLANE42                 ! acoustic fluid element with ux & uy
 ET,SFI,fluid29,,0,0
-ET,CSF,fluid29,,1,0
 ET,INFINITE,FLUID129             ! acoustic infinite line element
 ET,AIR,fluid29,,1,0
 !
 ! Define Material Properties
 !
-*IF,VISCO,EQ,1,THEN
-!MP 1 is Brain
-!hyper & visco props per Rashid et al, "Hyper....of brain tissue"
-u1=2780
-a1=6
-d1=?
-TB,HYPER,,,,OGDEN
-TBDATA,BRAIN,u1,a1,d1
-TB,PRONY,BRAIN,,2,SHEAR
-a1=0.5837
-a2=0.2387
-t1=0.02571
-t2=.0257
-TBDATA,BRAIN,a1,t1,a2,t2
-MP,DENS,BRAIN, 1060
-*ELSEIF,VISCO,EQ,0
-MP,DENS,BRAIN,1000
-MP,SONC,BRAIN,1497
-*ENDIF
+MP,DENS,BRAIN,1.225
+MP,SONC,BRAIN,340
+MP,VISC,BRAIN,0.1
 !
 !MP 2 is SKULL
 MP,EX,SKULL,2.5e9 ! Elastic Modulus
@@ -120,14 +92,9 @@ MP,NUXY,HELMET,0.22 ! Minor Poisson's Ratio
 ! MP 4 is Air
 MP,DENS,AIR,1.225 ! Density
 MP,SONC,AIR,343.2 ! Sonic Velocity
-MP,VISC,AIR,16E-6 ! Viscosity
+MP,VISC,AIR,1.81E-5 ! Viscosity
 !
 ! MP of INFINITE is the same as AIR
-!
-! MP 7 is CSF
-MP,DENS,CSF,1000 ! Density
-MP,SONC,CSF,1497 ! Sonic Velocity
-MP,VISC,CSF,0.0091 ! Viscosity
 !
 ! Create Geometry
 ! 
@@ -137,17 +104,13 @@ CYL4,0,0,0,90,BRAIN_RADIUS,180
 CYL4,0,0,0,180,BRAIN_RADIUS,270
 CYL4,0,0,0,270,BRAIN_RADIUS,360
 !
-! Create CSF Geometry
-CYL4,0,0,CSF_INNER_RADIUS,0,CSF_OUTER_RADIUS,180    
-CYL4,0,0,CSF_INNER_RADIUS,180,CSF_OUTER_RADIUS,360
-!
 ! Create Skull Geometry
 CYL4,0,0,SKULL_INNER_RADIUS,0,SKULL_OUTER_RADIUS,180    
 CYL4,0,0,SKULL_INNER_RADIUS,180,SKULL_OUTER_RADIUS,360
 !
 ! Create Air Gap Geometry
-CYL4,0,0,AIR_GAP_INNER,0,AIR_GAP_OUTER,90
-CYL4,0,0,AIR_GAP_INNER,270,AIR_GAP_OUTER,360
+CYL4,0,0,AIR_GAP_INNER,0,AIR_GAP_OUTER,180
+CYL4,0,0,AIR_GAP_INNER,180,AIR_GAP_OUTER,360
 !
 ! Create Helmet Geometry
 CYL4,0,0,HELMET_INNER,0,HELMET_OUTER,180
@@ -162,7 +125,7 @@ CYL4,0,0,AIR_INNER,180,AIR_OUTER,360
 ! Mesh Brain
 ! Areas 1-4 are Brain
 ASEL,S,AREA,,1  ! BRAIN AREA
-AATT,BRAIN,1,BRAIN,0
+AATT,BRAIN,1,SFI,0
 A1_4_D=BRAIN_RADIUS*BRAIN_DIVISIONS
 LESIZE,1,,,QUARTER,1   ! OUTER CURVE
 LESIZE,2,,,A1_4_D,1   ! LEFT LINE
@@ -171,7 +134,7 @@ MSHKEY,0
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,1
 ASEL,S,AREA,,2  ! BRAIN AREA
-AATT,BRAIN,1,BRAIN,0
+AATT,BRAIN,1,SFI,0
 LESIZE,4,,,QUARTER,1   ! OUTER CURVE
 LESIZE,5,,,A1_4_D,1   ! LEFT LINE
 LESIZE,6,,,A1_4_D,1  ! RIGHT LINE
@@ -179,7 +142,7 @@ MSHKEY,0
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,2
 ASEL,S,AREA,,3  ! BRAIN AREA
-AATT,BRAIN,1,BRAIN,0
+AATT,BRAIN,1,SFI,0
 LESIZE,7,,,QUARTER,1   ! OUTER CURVE
 LESIZE,8,,,A1_4_D,1   ! LEFT LINE
 LESIZE,9,,,A1_4_D,1  ! RIGHT LINE
@@ -187,7 +150,7 @@ MSHKEY,0
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,3
 ASEL,S,AREA,,4  ! BRAIN AREA
-AATT,BRAIN,1,BRAIN,0
+AATT,BRAIN,1,SFI,0
 LESIZE,10,,,QUARTER,1   ! OUTER CURVE
 LESIZE,11,,,A1_4_D,1   ! LEFT LINE
 LESIZE,12,,,A1_4_D,1  ! RIGHT LINE
@@ -195,12 +158,12 @@ MSHKEY,0
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,4
 !
-! Mesh CSF
-! Areas 5-6 are CSF
-CSF_WIDTH=CSF_OUTER_RADIUS-CSF_INNER_RADIUS
-A5_6_D=CSF_WIDTH*CSF_DIVISIONS
-ASEL,S,AREA,,5  ! CSF AREA
-AATT,CSF,1,SFI,0
+! Mesh Skull
+! Areas 5-6 are Skull
+SKULL_WIDTH=SKULL_OUTER_RADIUS-SKULL_INNER_RADIUS
+A5_6_D=SKULL_WIDTH*SKULL_DIVISIONS
+ASEL,S,AREA,,5  ! SKULL AREA
+AATT,SKULL,1,SKULL,0
 LESIZE,13,,,SEMI,1  ! INNER CURVE
 LESIZE,14,,,A5_6_D,1  ! OUTER CURVE
 LESIZE,15,,,SEMI,1  ! LEFT LINE
@@ -208,8 +171,8 @@ LESIZE,16,,,A5_6_D,1  ! RIGHT LINE
 MSHKEY,1
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,5	
-ASEL,S,AREA,,6  ! CSF AREA
-AATT,CSF,1,SFI,0
+ASEL,S,AREA,,6  ! SKULL AREA
+AATT,SKULL,1,SKULL,0
 LESIZE,17,,,SEMI,1  ! INNER CURVE
 LESIZE,18,,,A5_6_D,1  ! OUTER CURVE
 LESIZE,19,,,SEMI,1  ! LEFT LINE
@@ -218,108 +181,77 @@ MSHKEY,1
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,6
 !
-! Mesh Skull
-! Areas 7-8 are Skull
-SKULL_WIDTH=SKULL_OUTER_RADIUS-SKULL_INNER_RADIUS
-A7_8_D=SKULL_WIDTH*SKULL_DIVISIONS
-ASEL,S,AREA,,7  ! SKULL AREA
-AATT,SKULL,1,SKULL,0
-LESIZE,21,,,SEMI,1  ! INNER CURVE
-LESIZE,22,,,A7_8_D,1  ! OUTER CURVE
-LESIZE,23,,,SEMI,1  ! LEFT LINE
-LESIZE,24,,,A7_8_D,1  ! RIGHT LINE
+! Mesh Air Gap
+! Areas 7-8 are Air Gap
+AIR_GAP_WIDTH=AIR_GAP_OUTER-AIR_GAP_INNER
+A7_8_D=AIR_GAP_WIDTH*AIR_GAP_DIVISIONS
+ASEL,S,AREA,,7  ! AIR GAP AREA
+AATT,AIR,1,SFI,0
+LESIZE,21,,,SEMI,1  ! inner curve
+LESIZE,23,,,SEMI,1  ! outer curve
+LESIZE,22,,,A7_8_D,1  ! left radial
+LESIZE,24,,,A7_8_D,1 ! right radial
 MSHKEY,1
 MSHAPE,0,2D                    ! mapped quad mesh
-AMESH,7	
-ASEL,S,AREA,,8  ! SKULL AREA
-AATT,SKULL,1,SKULL,0
-LESIZE,25,,,SEMI,1  ! INNER CURVE
-LESIZE,26,,,A7_8_D,1  ! OUTER CURVE
-LESIZE,27,,,SEMI,1  ! LEFT LINE
-LESIZE,28,,,A7_8_D,1  ! RIGHT LINE
+AMESH,7
+ASEL,S,AREA,,8  ! AIR GAP AREA
+AATT,AIR,1,SFI,0
+LESIZE,25,,,SEMI,1  ! inner curve
+LESIZE,27,,,SEMI,1  ! outer curve
+LESIZE,26,,,A7_8_D,1  ! left radial
+LESIZE,28,,,A7_8_D,1 ! right radial
 MSHKEY,1
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,8
-!
-! Mesh Air Gap
-! Areas 9-10 are Air Gap
-AIR_GAP_WIDTH=AIR_GAP_OUTER-AIR_GAP_INNER
-A9_10_D=AIR_GAP_WIDTH*AIR_GAP_DIVISIONS
-ASEL,S,AREA,,9  ! AIR GAP AREA
-AATT,AIR,1,SFI,0
-LESIZE,29,,,QUARTER,1  ! inner curve
-LESIZE,31,,,QUARTER,1  ! outer curve
-LESIZE,30,,,A9_10_D,1  ! left radial
-LESIZE,32,,,A9_10_D,1 ! right radial
+!	
+! Mesh Helmet
+! Area 9 is helmet
+HELMET_WIDTH=HELMET_OUTER-HELMET_INNER
+A9_D=HELMET_WIDTH*HELMET_DIVISIONS
+ASEL,S,AREA,,9  ! HELMET AREA
+AATT,HELMET,1,HELMET,0
+LESIZE,29,,,SEMI,1  ! inner curve
+LESIZE,31,,,SEMI,1  ! outer curve
+LESIZE,30,,,A9_D,1  ! left radial
+LESIZE,32,,,A9_D,1 ! right radial
 MSHKEY,1
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,9
-ASEL,S,AREA,,10  ! AIR GAP AREA
-AATT,AIR,1,SFI,0
-LESIZE,33,,,QUARTER,1  ! inner curve
-LESIZE,35,,,QUARTER,1  ! outer curve
-LESIZE,34,,,A9_10_D,1  ! left radial
-LESIZE,36,,,A9_10_D,1 ! right radial
-MSHKEY,1
-MSHAPE,0,2D                    ! mapped quad mesh
-AMESH,10
-ESEL, s, type,,SFI
-NSLE,s,ALL
-CSYS,0
-NSYM,X,10000,ALL
-ESYM,X,10000,ALL
-CSYS,1
-ESEL,ALL
-NSEL,ALL
-!	
-! Mesh Helmet
-! Area 11 is helmet
-HELMET_WIDTH=HELMET_OUTER-HELMET_INNER
-A11_D=HELMET_WIDTH*HELMET_DIVISIONS
-ASEL,S,AREA,,11  ! HELMET AREA
-AATT,HELMET,1,HELMET,0
-LESIZE,37,,,SEMI,1  ! inner curve
-LESIZE,39,,,SEMI,1  ! outer curve
-LESIZE,38,,,A11_D,1  ! left radial
-LESIZE,40,,,A11_D,1 ! right radial
-MSHKEY,1
-MSHAPE,0,2D                    ! mapped quad mesh
-AMESH,11
 ! 
 ! Mesh Remaining Air
 ! Areas 10-12 are air
-A12_D=HELMET_WIDTH*AIR_GAP_DIVISIONS
+A10_D=HELMET_WIDTH*AIR_GAP_DIVISIONS
+ASEL,S,AREA,,10  ! AIR AREA
+AATT,AIR,1,SFI,0
+LESIZE,33,,,SEMI,1  ! inner curve
+LESIZE,35,,,SEMI,1  ! outer curve
+LESIZE,34,,,A10_D,1  ! left radial
+LESIZE,36,,,A10_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,10
+! select, assign attribute to and mesh area 2
+AIR_WIDTH=AIR_OUTER-AIR_INNER
+A11_12_D=AIR_WIDTH*AIR_DIVISIONS
+ASEL,S,AREA,,11  ! AIR AREA
+AATT,AIR,1,SFI,0
+LESIZE,37,,,SEMI,1  ! inner curve
+LESIZE,39,,,SEMI,1  ! outer curve
+LESIZE,38,,,A11_12_D,1  ! left radial
+LESIZE,40,,,A11_12_D,1 ! right radial
+MSHKEY,1
+MSHAPE,0,2D                    ! mapped quad mesh
+AMESH,11
+! select, assign attribute to and mesh area 2
 ASEL,S,AREA,,12  ! AIR AREA
 AATT,AIR,1,SFI,0
 LESIZE,41,,,SEMI,1  ! inner curve
 LESIZE,43,,,SEMI,1  ! outer curve
-LESIZE,42,,,A12_D,1  ! left radial
-LESIZE,44,,,A12_D,1 ! right radial
+LESIZE,42,,,A11_12_D,1  ! left radial
+LESIZE,44,,,A11_12_D,1 ! right radial
 MSHKEY,1
 MSHAPE,0,2D                    ! mapped quad mesh
 AMESH,12
-! select, assign attribute to and mesh area 2
-AIR_WIDTH=AIR_OUTER-AIR_INNER
-A13_14_D=AIR_WIDTH*AIR_DIVISIONS
-ASEL,S,AREA,,13  ! AIR AREA
-AATT,AIR,1,SFI,0
-LESIZE,45,,,SEMI,1  ! inner curve
-LESIZE,47,,,SEMI,1  ! outer curve
-LESIZE,46,,,A13_14_D,1  ! left radial
-LESIZE,48,,,A13_14_D,1 ! right radial
-MSHKEY,1
-MSHAPE,0,2D                    ! mapped quad mesh
-AMESH,13
-! select, assign attribute to and mesh area 2
-ASEL,S,AREA,,14  ! AIR AREA
-AATT,AIR,1,SFI,0
-LESIZE,49,,,SEMI,1  ! inner curve
-LESIZE,51,,,SEMI,1  ! outer curve
-LESIZE,50,,,A13_14_D,1  ! left radial
-LESIZE,52,,,A13_14_D,1 ! right radial
-MSHKEY,1
-MSHAPE,0,2D                    ! mapped quad mesh
-AMESH,14
 !
 ! Done Meshing - Merge All Quantities
 NUMMRG,ALL                     ! merge all quantities
@@ -327,16 +259,15 @@ NUMMRG,ALL                     ! merge all quantities
 !
 ! Define Boundary Conditions
 !
-! Modify all elements not touching a solid to 
+! Modify all elements not touching a solid to Air
 esel,s,type,,SKULL
-esel,a,type,,BRAIN
 nsle,s,ALL
 esln,s,0,ALL
 nsle,s
 esel,inve
 esel, r, type,,SFI
 nsle,s
-emodif,all,type,AIR
+emodif,all,type,BRAIN
 nsel,ALL
 esel,ALL
 ! Couple interfaces
@@ -353,39 +284,37 @@ nsel,all
 esel,all
 !
 !
-nsel,s,loc,x,BRAIN_RADIUS
-esel,s,type,,SFI
-SF,all,fsi,1
-! Fluid-Solid Interface for Skull to CSF
+! Fluid-Solid Interface for Skull to Brain
 nsel,s,loc,x,SKULL_INNER_RADIUS
 esel,s,type,,SFI
-SF,all,fsi,1
+SF,all,fsi
+!
 ! Fluid-Solid Interface for Skull to Air
 nsel,s,loc,x,SKULL_OUTER_RADIUS
 esel,s,type,,SFI
-SF,all,fsi,1
+SF,all,fsi
 !
 ! Fluid-Solid Interface for Helmet
 ! Inner curve of helmet
 nsel,s,loc,x,HELMET_INNER
 nsel,r, loc,y,0,180
 esel,s,type,,SFI
-sf,all,fsi,1
+sf,all,fsi
 ! Outer curve of helmet
 nsel,s,loc,x,HELMET_OUTER
 nsel,r, loc,y,0,180
 esel,s,type,,SFI
-sf,all,fsi,1
+sf,all,fsi
 ! Right edge of helmet
 nsel,s,loc,x,HELMET_INNER,HELMET_OUTER
 nsel,r, loc,y,0
 esel,s,type,,SFI
-sf,all,fsi,1
+sf,all,fsi
 ! Left edge of helmet
 nsel,s,loc,x,HELMET_INNER,HELMET_OUTER
 nsel,r, loc,y,0,180
 esel,s,type,,SFI
-sf,all,fsi,1
+sf,all,fsi
 !
 ! Reselect all nodes and elements
 nsel,all
@@ -398,6 +327,9 @@ nsle,r,ALL
 nsel,ALL
 esel,ALL
 !
+! Modify WorkPlane
+wpstyle,0.05,0.1,-1,1,0.003,1,0,,5  
+WPSTYLE,,,,,,,,1
 FINISH
 !
 ! Solution Stage
@@ -405,6 +337,8 @@ FINISH
 /SOLU
 ANTYPE,4
 NLGEOM,on
+NEQIT,60
+NCNV,0
 TRNOPT,FULL 
 LUMPM,0  
 OUTRES,NSOL,1,
