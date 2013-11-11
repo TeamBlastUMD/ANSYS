@@ -19,10 +19,10 @@ NUM_STEP=.003/TIMESTEP
 !
 !! Blast Properties
 ! Location (polar coordinates)
-NODE_RADIUS=0.9
+NODE_RADIUS=0.4
 NODE_ANGLE=0
 ! Magnitude (in Pa)
-PRES_MAG=300000
+PRES_MAG=137895
 !
 !
 !! Geometry (in m)_
@@ -75,7 +75,7 @@ ET,AIR,fluid29,,1,0
 !
 ! Define Material Properties
 !
-MP,DENS,BRAIN,1.225
+MP,DENS,BRAIN,1000
 MP,SONC,BRAIN,340
 MP,VISC,BRAIN,0.1
 !
