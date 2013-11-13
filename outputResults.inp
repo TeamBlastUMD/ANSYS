@@ -7,7 +7,7 @@ RESUME
 RESULTSFOLDER='Mike1um/'
 PATH1='/data2/blast_project/'
 PATH2='ansys/results/'
-NUM_STEP=.003/TIMESTEP
+NUM_STEP=.003/TIMESTEP		
 /POST1
 !!!!!!!!!!!!!!!!!! OUTPUT BRAIN NODE LOCATIONS
 NODE_LOCATIONS_FILE='BRAIN_NODE_LOCATIONS'
@@ -28,7 +28,7 @@ NLIST,ALL, , ,XYZ,,,,
 !!!!!!!!!!!!!!! OUTPUT PRESSURES
 /POST1
 nsel,s,loc,x,0,0.085 ! Selects all nodes from radius 0 to 0.085
-esel,s,loc,x,0,0.085 ! Selects all elements from radius 0 to 0.085
+esln ! Selects all elements from radius 0 to 0.085
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
 	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%B_P_%STEP_NO%,,,,
@@ -59,7 +59,7 @@ NLIST,ALL, , ,XYZ,,,,
 !!!!!!!!!!!!!!! OUTPUT PRESSURES	
 /POST1
 nsel,s,loc,x,0.0951,0.1329 ! Selects all nodes from radius .951 to .133
-esel,s,loc,x,0.0951,0.1329 ! Selects all elements from radius .951 to .133
+esln ! Selects all elements from radius .951 to .133
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
 	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%I_P_%STEP_NO%,,,,
@@ -80,7 +80,7 @@ NODE_LOCATIONS_FILE='OUTER_NODE_LOCATIONS'
 ! <DIRECTION> = x for radius
 ! <DIRECTION> = y for theta
 ! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
-nsel,s,loc,x,0.153,0.16 ! Selects all nodes from radius .153 to .16
+nsel,s,loc,x,0.2,0.21 ! Selects all nodes from radius .153 to .16
 /OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
@@ -88,8 +88,8 @@ NLIST,ALL, , ,XYZ,,,,
 !
 !!!!!!!!!!!!!!! OUTPUT PRESSURES
 /POST1
-nsel,s,loc,x,0.153,0.16 ! Selects all nodes from radius .153 to .16
-esel,s,loc,x,0.153,0.16 ! Selects all elements from radius .153 to .16
+nsel,s,loc,x,0..2,0.21 ! Selects all nodes from radius .153 to .16
+esln ! Selects all elements from radius .153 to .16
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
 	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%O_P_%STEP_NO%,,,,

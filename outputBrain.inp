@@ -28,7 +28,7 @@ NLIST,ALL, , ,XYZ,,,,
 !!!!!!!!!!!!!!! OUTPUT PRESSURES
 /POST1
 nsel,s,loc,x,0,0.085 ! Selects all nodes from radius 0 to 0.085
-esel,s,loc,x,0,0.085 ! Selects all elements from radius 0 to 0.085
+esln ! Selects all elements from radius 0 to 0.085
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
 	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%B_P_%STEP_NO%,,,,
