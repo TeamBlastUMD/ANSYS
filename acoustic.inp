@@ -373,6 +373,31 @@ SAVE
 LSSOLVE,1,3,1, 
 FINISH
 /POST1
+!!!!!!!!!!!!!!!!!! OUTPUT LOAD NODE LOCATIONS
+PATH='/data2/blast_project/'
+PATH2='ansys/results/'
+NODE_LOCATIONS_FILE='LOAD_NODE_LOCATION'
+nsel,s,,NODE,PRES_NODE ! Selects all nodes from radius 0 to 0.085
+/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
+NLIST,ALL, , ,XYZ,,,,
+/OUTPUT
+!
+!!!!!!!!!!!!!!! OUTPUT PRESSURES
+/POST1
+nsel,s,,NODE,PRES_NODE ! Selects all nodes from radius 0 to 0.085
+esln,s,1 ! Selects all elements from radius 0 to 0.085
+*do, STEP_NO, 1, NUM_STEP
+	SET,,, ,,, ,%step_no%
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%L_P_%STEP_NO%,,,,
+	PRNSOL,PRES
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%L_S_%STEP_NO%,,,,
+	PRNSOL, EPEL, PRIN
+	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%L_A_%STEP_NO%,,,,
+	PRNSOL, ACC, COMP
+*enddo
+/OUTPUT
+/POST1
 !!!!!!!!!!!!!!!!!! OUTPUT BRAIN NODE LOCATIONS
 PATH='/data2/blast_project/'
 PATH2='ansys/results/'
