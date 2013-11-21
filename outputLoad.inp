@@ -10,10 +10,8 @@ PATH2='ansys/results/'
 NUM_STEP=.003/TIMESTEP
 /POST1
 !!!!!!!!!!!!!!!!!! OUTPUT LOAD NODE LOCATIONS
-PATH='/data2/blast_project/'
-PATH2='ansys/results/'
 NODE_LOCATIONS_FILE='LOAD_NODE_LOCATION'
-nsel,s,,NODE,PRES_NODE ! Selects all nodes from radius 0 to 0.085
+nsel,s,,,PRES_NODE ! Selects all nodes from radius 0 to 0.085
 /OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,

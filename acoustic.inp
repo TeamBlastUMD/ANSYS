@@ -38,7 +38,7 @@ AIR_OUTER=1
 !
 !! Meshing 
 ! Define Line Divisions
-MESH_SCALE=100
+MESH_SCALE=400
 RADIAL_DIVISIONS= MESH_SCALE
 SEMI=RADIAL_DIVISIONS/2
 QUARTER=RADIAL_DIVISIONS/4
@@ -354,7 +354,7 @@ LSWRITE,1,
 OUTRES,NSOL,1,
 OUTRES,A,1
 OUTRES,EPEL,1
-D,PRES_NODE,PRES, 0 
+DDELE, PRES_NODE,PRES 
 TIME,0.0004 
 AUTOTS,-1   
 KBC,0    
@@ -363,7 +363,6 @@ LSWRITE,2,
 OUTRES,NSOL,1,
 OUTRES,A,1
 OUTRES,EPEL,1
-DDELE, PRES_NODE,PRES
 TIME,0.003  ! *********************
 AUTOTS,-1 
 KBC,0    
@@ -378,7 +377,7 @@ PATH='/data2/blast_project/'
 PATH2='ansys/results/'
 NODE_LOCATIONS_FILE='LOAD_NODE_LOCATION'
 nsel,s,,NODE,PRES_NODE ! Selects all nodes from radius 0 to 0.085
-/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
 /OUTPUT
@@ -389,17 +388,17 @@ nsel,s,,NODE,PRES_NODE ! Selects all nodes from radius 0 to 0.085
 esln,s,1 ! Selects all elements from radius 0 to 0.085
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%L_P_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%L_P_%STEP_NO%,,,,
 	PRNSOL,PRES
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%L_S_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%L_S_%STEP_NO%,,,,
 	PRNSOL, EPEL, PRIN
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%L_A_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%L_A_%STEP_NO%,,,,
 	PRNSOL, ACC, COMP
 *enddo
 /OUTPUT
 /POST1
 !!!!!!!!!!!!!!!!!! OUTPUT BRAIN NODE LOCATIONS
-PATH='/data2/blast_project/'
+PATH1='/data2/blast_project/'
 PATH2='ansys/results/'
 NODE_LOCATIONS_FILE='BRAIN_NODE_LOCATIONS'
 ! to select nodes use the nsel command
@@ -411,7 +410,7 @@ NODE_LOCATIONS_FILE='BRAIN_NODE_LOCATIONS'
 ! <DIRECTION> = y for theta
 ! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
 nsel,s,loc,x,0,0.085 ! Selects all nodes from radius 0 to 0.085
-/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
 /OUTPUT
@@ -422,12 +421,8 @@ nsel,s,loc,x,,0.085 ! Selects all nodes from radius 0 to 0.085
 esln,s,1 ! Selects all elements from radius 0 to 0.085
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_P_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%B_P_%STEP_NO%,,,,
 	PRNSOL,PRES
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_S_%STEP_NO%,,,,
-	PRNSOL, EPEL, PRIN
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_A_%STEP_NO%,,,,
-	PRNSOL, ACC, COMP
 *enddo
 /OUTPUT
 !
@@ -442,7 +437,7 @@ NODE_LOCATIONS_FILE='INNER_NODE_LOCATIONS'
 ! <DIRECTION> = y for theta
 ! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
 nsel,s,loc,x,0.0951,0.1329 ! Selects all nodes from radius .951 to .133
-/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
 /OUTPUT
@@ -453,7 +448,7 @@ nsel,s,loc,x,0.0951,0.1329 ! Selects all nodes from radius .951 to .133
 esln,s,1 ! Selects all elements from radius .951 to .133
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%I_P_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%I_P_%STEP_NO%,,,,
 	PRNSOL,PRES
 *enddo
 /OUTPUT
@@ -468,7 +463,7 @@ NODE_LOCATIONS_FILE='OUTER_NODE_LOCATIONS'
 ! <DIRECTION> = y for theta
 ! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
 nsel,s,loc,x,0.153,0.173 ! Selects all nodes from radius .153 to .173
-/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
 /OUTPUT
@@ -479,7 +474,26 @@ nsel,s,loc,x,0.153,0.173 ! Selects all nodes from radius .153 to .173
 esln,s,1 ! Selects all elements from radius .153 to .173
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%O_P_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%O_P_%STEP_NO%,,,,
+	PRNSOL,PRES
+*enddo
+/OUTPUT
+/POST1
+!!!!!!!!!!!!!!!!!! OUTPUT LOAD NODE LOCATIONS
+NODE_LOCATIONS_FILE='LOAD_NODE_LOCATION'
+nsel,s,,,PRES_NODE ! Selects all nodes from radius 0 to 0.085
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
+NLIST,ALL, , ,XYZ,,,,
+/OUTPUT
+!
+!!!!!!!!!!!!!!! OUTPUT PRESSURES
+/POST1
+nsel,s,,NODE,PRES_NODE ! Selects all nodes from radius 0 to 0.085
+esln,s,1 ! Selects all elements from radius 0 to 0.085
+*do, STEP_NO, 1, NUM_STEP
+	SET,,, ,,, ,%step_no%
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%L_P_%STEP_NO%,,,,
 	PRNSOL,PRES
 *enddo
 /OUTPUT

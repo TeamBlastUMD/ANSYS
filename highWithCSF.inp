@@ -90,14 +90,15 @@ ET,AIR,fluid29,,1,0
 *IF,VISCO,EQ,1,THEN
 !MP 1 is Brain
 !hyper & visco props per Rashid et al, "Hyper....of brain tissue"
-	!Constitutive modelling of brain tissue--bulk modulus of 2.5E9	
+!Constitutive modelling of brain tissue--bulk modulus of 2.5E9	
 u1=2780
 a1=6
 d1=0.8E-9 			!incompressibility = 2/bulk modulus
 TB,HYPER,BRAIN,,,OGDEN
 TBDATA,1,u1
 TBDATA,2,a1
-TBDATA,3,d1TB,PRONY,BRAIN,,2,SHEAR
+TBDATA,3,d1
+TB,PRONY,BRAIN,,2,SHEAR
 a1=0.5837
 a2=0.2387
 t1=0.02571
@@ -445,7 +446,7 @@ LSSOLVE,1,3,1,
 FINISH
 /POST1
 !!!!!!!!!!!!!!!!!! OUTPUT BRAIN NODE LOCATIONS
-PATH='/data2/blast_project/'
+PATH1='/data2/blast_project/'
 PATH2='ansys/results/'
 NODE_LOCATIONS_FILE='BRAIN_NODE_LOCATIONS'
 ! to select nodes use the nsel command
@@ -457,7 +458,7 @@ NODE_LOCATIONS_FILE='BRAIN_NODE_LOCATIONS'
 ! <DIRECTION> = y for theta
 ! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
 nsel,s,loc,x,0,0.085 ! Selects all nodes from radius 0 to 0.085
-/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
 /OUTPUT
@@ -468,11 +469,11 @@ nsel,s,loc,x,,0.085 ! Selects all nodes from radius 0 to 0.085
 esln,s,1 ! Selects all elements from radius 0 to 0.085
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_P_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%B_P_%STEP_NO%,,,,
 	PRNSOL,PRES
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_S_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%B_S_%STEP_NO%,,,,
 	PRNSOL, EPEL, PRIN
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%B_A_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%B_A_%STEP_NO%,,,,
 	PRNSOL, ACC, COMP
 *enddo
 /OUTPUT
@@ -488,7 +489,7 @@ NODE_LOCATIONS_FILE='INNER_NODE_LOCATIONS'
 ! <DIRECTION> = y for theta
 ! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
 nsel,s,loc,x,0.0951,0.1329 ! Selects all nodes from radius .951 to .133
-/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
 /OUTPUT
@@ -499,7 +500,7 @@ nsel,s,loc,x,0.0951,0.1329 ! Selects all nodes from radius .951 to .133
 esln,s,1 ! Selects all elements from radius .951 to .133
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%I_P_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%I_P_%STEP_NO%,,,,
 	PRNSOL,PRES
 *enddo
 /OUTPUT
@@ -514,7 +515,7 @@ NODE_LOCATIONS_FILE='OUTER_NODE_LOCATIONS'
 ! <DIRECTION> = y for theta
 ! <START>, <STOP>, <SINGLE_LOCATION> are all values - for theta values use DEGREES
 nsel,s,loc,x,0.153,0.173 ! Selects all nodes from radius .153 to .173
-/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
 ! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
 NLIST,ALL, , ,XYZ,,,,
 /OUTPUT
@@ -525,7 +526,26 @@ nsel,s,loc,x,0.153,0.173 ! Selects all nodes from radius .153 to .173
 esln,s,1 ! Selects all elements from radius .153 to .173
 *do, STEP_NO, 1, NUM_STEP
 	SET,,, ,,, ,%step_no%
-	/OUTPUT,%PATH%%PATH2%%RESULTSFOLDER%O_P_%STEP_NO%,,,,
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%O_P_%STEP_NO%,,,,
+	PRNSOL,PRES
+*enddo
+/OUTPUT
+/POST1
+!!!!!!!!!!!!!!!!!! OUTPUT LOAD NODE LOCATIONS
+NODE_LOCATIONS_FILE='LOAD_NODE_LOCATION'
+nsel,s,,,PRES_NODE ! Selects all nodes from radius 0 to 0.085
+/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%%NODE_LOCATIONS_FILE%,,,
+! The following command lists all of the x, y, and z coordinates of ALL SELECTED nodes
+NLIST,ALL, , ,XYZ,,,,
+/OUTPUT
+!
+!!!!!!!!!!!!!!! OUTPUT PRESSURES
+/POST1
+nsel,s,,NODE,PRES_NODE ! Selects all nodes from radius 0 to 0.085
+esln,s,1 ! Selects all elements from radius 0 to 0.085
+*do, STEP_NO, 1, NUM_STEP
+	SET,,, ,,, ,%step_no%
+	/OUTPUT,%PATH1%%PATH2%%RESULTSFOLDER%L_P_%STEP_NO%,,,,
 	PRNSOL,PRES
 *enddo
 /OUTPUT
